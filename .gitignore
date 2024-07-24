@@ -1,0 +1,3 @@
+dev/*
+imgs/*
+.streamlit/secrets.toml

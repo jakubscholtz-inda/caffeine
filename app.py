@@ -27,7 +27,11 @@ def get_beans():
 
 
 if "voted" not in st.session_state:
-    token = st.query_params["token"]
+    if "token" in st.query_params:
+        token = st.query_params["token"]
+    else:
+        st.error("Please use the correct link to vote.")
+        st.stop()
     answer = mongo_client().caffeine.users.find_one({"token": token})
     if answer:
         st.session_state.voted = {}

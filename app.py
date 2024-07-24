@@ -44,10 +44,10 @@ if "voted" not in st.session_state:
 st.session_state["beans"] = get_beans()
 
 
-st.title(":coffee: Caffe*in*e ")
+st.title(":coffee: Caffe**in**e ")
 st.markdown(" - Please gives us your opinion about our coffee!")
-st.markdown(" - 5 cups is the best, 1 cup is the worst rating.")
-st.write("After you vote, we will see the price estimate per espresso.")
+st.markdown(" - 5 cups is the best rating, 1 cup is the worst rating.")
+st.write("After you vote, you will see the price estimate per espresso.")
 
 
 def vote(index_vote):
@@ -83,13 +83,14 @@ for index, bean_type in enumerate(st.session_state.beans):
             st.write("")
             sac.rate(
                 label="",
-                value=3.0,
+                value=0.0,
                 align="start",
                 key=f"star_{index:02d}",
                 on_change=vote,
                 args=(index,),
                 symbol=sac.BsIcon("cup-hot", size=None, color=None),
                 size="sm",
+                half=True,
             )
         else:
             st.write("")

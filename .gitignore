@@ -1,3 +1,5 @@
 dev/*
 imgs/*
 .streamlit/secrets.toml
+poetry.lock
+pyproject.toml

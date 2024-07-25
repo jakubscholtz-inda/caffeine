@@ -42,6 +42,7 @@ def get_beans():
 
 
 if "voted" not in st.session_state:
+
     if "token" in st.query_params:
         token = st.query_params["token"]
     else:
@@ -52,6 +53,15 @@ if "voted" not in st.session_state:
         st.session_state.voted = {}
         st.session_state.votes = {}
         st.session_state.id = str(uuid.uuid4())
+        st.session_state.ip = get_forwarded_ip()
+
+        old_votes = list(
+            mongo_client().caffeine.votes.find({"ip": st.session_state.ip})
+        )
+        for item in old_votes:
+            st.session_state.voted[item["name"]] = True
+            st.session_state.votes[item["name"]] = float(item["stars"])
+
     else:
         st.error("Please use the correct link to vote.")
         st.stop()
@@ -61,7 +71,6 @@ st.session_state["beans"] = get_beans()
 
 # st.title(":coffee: Caffe**in**e ")
 st.image("caffeine.png", use_column_width=True)
-st.toast(f"The remote ip is {get_forwarded_ip()}")
 st.markdown(" - Please gives us your opinion about our coffee!")
 st.markdown(" - 5 cups is the best rating, 1 cup is the worst rating.")
 st.write("After you vote, you will see the price estimate per espresso.")
@@ -71,14 +80,15 @@ def vote(index_vote):
     if index_vote not in st.session_state.voted:
         st.toast(f"Thanks for voting {st.session_state.beans[index]['name']}!")
         vote_dict = {
-            "name": st.session_state["beans"][index_vote]["name"],
+            "ip": st.session_state.ip,
+            "name": index_vote,
             "date": datetime.datetime.now(),
             "id": st.session_state.id,
-            "stars": st.session_state[f"star_{index_vote:02d}"],
+            "stars": st.session_state[f"star_{index_vote}"],
         }
         mongo_client().caffeine.votes.insert_one(vote_dict)
         st.session_state.voted[index_vote] = True
-        st.session_state.votes[index_vote] = st.session_state[f"star_{index_vote:02d}"]
+        st.session_state.votes[index_vote] = st.session_state[f"star_{index_vote}"]
 
 
 st.divider()
@@ -96,20 +106,20 @@ for index, bean_type in enumerate(st.session_state.beans):
         cols[3].write("")
         cols[3].write(f"~ {1.3 * bean_type['price_per_kilo'] / 1000 * 8.3:.2f}€")
     with cols[4]:
-        if index not in st.session_state.voted:
+        if bean_type["name"] not in st.session_state.voted:
             st.write("")
             sac.rate(
                 label="",
                 value=0.0,
                 align="start",
-                key=f"star_{index:02d}",
+                key=f"star_{bean_type['name']}",
                 on_change=vote,
-                args=(index,),
+                args=(bean_type["name"],),
                 symbol=sac.BsIcon("cup-hot", size=None, color=None),
                 size="sm",
                 half=True,
             )
         else:
             st.write("")
-            st.write(f":red[You voted {st.session_state.votes[index]}]")
+            st.write(f":red[You voted {st.session_state.votes[bean_type['name']]}]")
     st.divider()

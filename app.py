@@ -6,21 +6,6 @@ st.set_page_config(
     # layout="wide",
 )
 
-from streamlit.web.server.websocket_headers import _get_websocket_headers
-
-
-def get_forwarded_ip():
-    headers = _get_websocket_headers()
-    # Example: "X-Forwarded-For': '13.51.91.225, 162.158.90.188'"
-    try:
-        x_forwarded_for = headers["X-Forwarded-For"]
-        st.session_state.ip_all = x_forwarded_for
-        first_ip = x_forwarded_for.split(", ")[0]
-    except KeyError:
-        first_ip = None
-
-    return first_ip
-
 
 import streamlit_antd_components as sac
 import base64
@@ -54,14 +39,13 @@ if "voted" not in st.session_state:
         st.session_state.voted = {}
         st.session_state.votes = {}
         st.session_state.id = str(uuid.uuid4())
-        st.session_state.ip = get_forwarded_ip()
 
-        old_votes = list(
-            mongo_client().caffeine.votes.find({"ip": st.session_state.ip})
-        )
-        for item in old_votes:
-            st.session_state.voted[item["name"]] = True
-            st.session_state.votes[item["name"]] = float(item["stars"])
+        # old_votes = list(
+        #    mongo_client().caffeine.votes.find({"ip": st.session_state.ip})
+        # )
+        # for item in old_votes:
+        #    st.session_state.voted[item["name"]] = True
+        #    st.session_state.votes[item["name"]] = float(item["stars"])
 
     else:
         st.error("Please use the correct link to vote.")
@@ -72,7 +56,6 @@ st.session_state["beans"] = get_beans()
 
 # st.title(":coffee: Caffe**in**e ")
 st.image("caffeine.png", use_column_width=True)
-st.markdown(f"IPs are {st.session_state.ip_all}")
 st.markdown(" - Please gives us your opinion about our coffee!")
 st.markdown(" - 5 cups is the best rating, 1 cup is the worst rating.")
 st.write("After you vote, you will see the price estimate per espresso.")
@@ -82,7 +65,6 @@ def vote(index_vote):
     if index_vote not in st.session_state.voted:
         st.toast(f"Thanks for voting {st.session_state.beans[index]['name']}!")
         vote_dict = {
-            "ip": st.session_state.ip,
             "name": index_vote,
             "date": datetime.datetime.now(),
             "id": st.session_state.id,
@@ -104,7 +86,7 @@ for index, bean_type in enumerate(st.session_state.beans):
     else:
         cols[1].write(f"**{bean_type['name']}**")
 
-    if index in st.session_state.voted:
+    if bean_type["name"] in st.session_state.voted:
         cols[3].write("")
         cols[3].write(f"~ {1.3 * bean_type['price_per_kilo'] / 1000 * 8.3:.2f}€")
     with cols[4]:

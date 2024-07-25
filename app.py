@@ -14,7 +14,7 @@ def get_forwarded_ip():
     # Example: "X-Forwarded-For': '13.51.91.225, 162.158.90.188'"
     try:
         x_forwarded_for = headers["X-Forwarded-For"]
-        st.toast(x_forwarded_for)
+        st.session_state.ip_all = x_forwarded_for
         first_ip = x_forwarded_for.split(", ")[0]
     except KeyError:
         first_ip = None
@@ -72,6 +72,7 @@ st.session_state["beans"] = get_beans()
 
 # st.title(":coffee: Caffe**in**e ")
 st.image("caffeine.png", use_column_width=True)
+st.markdown(f"IPs are {st.session_state.ip_all}")
 st.markdown(" - Please gives us your opinion about our coffee!")
 st.markdown(" - 5 cups is the best rating, 1 cup is the worst rating.")
 st.write("After you vote, you will see the price estimate per espresso.")

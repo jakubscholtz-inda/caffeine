@@ -14,6 +14,7 @@ def get_forwarded_ip():
     # Example: "X-Forwarded-For': '13.51.91.225, 162.158.90.188'"
     try:
         x_forwarded_for = headers["X-Forwarded-For"]
+        st.toast(x_forwarded_for)
         first_ip = x_forwarded_for.split(", ")[0]
     except KeyError:
         first_ip = None

@@ -6,26 +6,19 @@ st.set_page_config(
     # layout="wide",
 )
 
-
-from streamlit import runtime
-from streamlit.runtime.scriptrunner import get_script_run_ctx
+from streamlit.web.server.websocket_headers import _get_websocket_headers
 
 
-def get_remote_ip() -> str:
-    """Get remote ip."""
-
+def get_forwarded_ip():
+    headers = _get_websocket_headers()
+    # Example: "X-Forwarded-For': '13.51.91.225, 162.158.90.188'"
     try:
-        ctx = get_script_run_ctx()
-        if ctx is None:
-            return None
+        x_forwarded_for = headers["X-Forwarded-For"]
+        first_ip = x_forwarded_for.split(", ")[0]
+    except KeyError:
+        first_ip = None
 
-        session_info = runtime.get_instance().get_client(ctx.session_id)
-        if session_info is None:
-            return None
-    except Exception as e:
-        return None
-
-    return session_info.request.remote_ip
+    return first_ip
 
 
 import streamlit_antd_components as sac
@@ -68,7 +61,7 @@ st.session_state["beans"] = get_beans()
 
 # st.title(":coffee: Caffe**in**e ")
 st.image("caffeine.png", use_column_width=True)
-st.toast(f"The remote ip is {get_remote_ip()}")
+st.toast(f"The remote ip is {get_forwarded_ip()}")
 st.markdown(" - Please gives us your opinion about our coffee!")
 st.markdown(" - 5 cups is the best rating, 1 cup is the worst rating.")
 st.write("After you vote, you will see the price estimate per espresso.")
